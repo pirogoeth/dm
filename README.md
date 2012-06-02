@@ -2,4 +2,4 @@ dm
 ==
 * * *
 
-language agnostic dependency manager
+java dependency manager and build system
