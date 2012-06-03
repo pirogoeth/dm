@@ -1,4 +1,5 @@
 dm
 ==
+* * *
 
-dependency manager and microscopic build system.
+java dependency manager and build system

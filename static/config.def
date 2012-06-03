@@ -1,0 +1,30 @@
+declare -a upstream
+
+# ==============================================================================================================
+# compiler configurable options
+
+name=""
+basedir=""
+incdir="${basedir}/inc" # you shouldn't need to change this
+javac_includes=""
+javac_src=""
+
+# extra variables used during compile, may not always be used.
+plugin_datafile=""
+
+# upstream resources to run compile first to get an UPDATED resource.
+# this will read a resource list located at ~/.dm/resources
+
+upstream=(  )
+
+# compiler configuration ENDS
+# ==============================================================================================================
+# dependency configuration options
+
+# this is the source of your dm deps repo.
+depsource="http://maio.me/dm"
+# this shouldnt change.
+manifest="manifest.txt"
+
+# dependency configuration ENDS
+# ==============================================================================================================
