@@ -1,14 +1,16 @@
 #!/usr/bin/env bash
 
+declare -a hook_help
+
 # basically, this just checks if what is passed to the check function is whatever and if so, it gets run
 
 _bold='\033[1;37m'
 _none='\033[0m'
 
-function help.get() {
-    echo "${_bold}compile${_none}: compile using a normal java build script."
-    echo "    ${_bold}c${_none}: alias for ${_bold}compile${_none}."
-}
+hook_help=(
+    "${_bold}compile${_none}: compile using a normal java build script."
+    "${_bold}c${_none}: alias for ${_bold}compile${_none}."
+)
 
 function check() {
     if [[ ${1} == "compile" ]] || [[ ${1} == "c" ]] ; then
