@@ -15,9 +15,25 @@ fi
 command=${1}
 shift
 
+function dmplugindir() {
+    # $1: name of the plugin (plugin names and plugin dir name
+    #     is coordinated
+    # $2: force (return where the directory WOULD be.)
+    if test ! -z ${2} ; then
+        echo "${dmcore}/${1}"
+        return
+    fi
+    if test -d ${dmcore}/${1} ; then
+        echo "${dmcore}/${1}"
+    else
+        mkdir -p ${dmcore}/${1}/{hooks,plugins,data}
+        echo "${dmcore}/${1}"
+    fi
+}
+
 function projectdir() {
     # tells if current dir is a project dir
-    if test -d ${PWD}/.dm && test -e ${pwd} ; then
+    if test -d ${PWD}/.dm && test -e ${PWD}/.dm/config ; then
         echo "YES"
     else
         echo "NO"
@@ -39,7 +55,7 @@ function actionallowed() {
             done
         echo "NO"
     else
-        echo "NO"
+        echo "YES"
     fi
 }
 
