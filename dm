@@ -98,6 +98,6 @@ if [[ `projectdir` == "YES" ]] ; then
     echo "  actions allowed on this project:"
     for (( i=0; $i<${#dm_allowed_actions[@]}; i++ ))
         do
-            echo -e "    ${_bold}${dm_allowed_actions[${i}]}"
+            echo -e "    ${_bold}${dm_allowed_actions[${i}]}${_none}"
         done
 fi

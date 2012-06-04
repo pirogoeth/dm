@@ -1,12 +1,10 @@
 #!/usr/bin/env bash
+shopt -s extglob checkhash globstar
 
 declare -a startup
 
 # this environment is for special purposes, like setting up a new
 # dm environment.
-
-echo "dm custom environment loading.."
-echo "dm core is at: ${dmcore}"
 
 startup=( "${HOME}/.bashrc" "${HOME}/.profile" "${HOME}/.smartcd_config" )
 

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+shopt -s extglob checkhash globstar
 
 # this initialises a new dm project.
 # it's quite simple really...

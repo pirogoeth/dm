@@ -28,3 +28,8 @@ manifest="manifest.txt"
 
 # dependency configuration ENDS
 # ==============================================================================================================
+# dm wrapper options
+
+dm_allowed_actions=( )
+
+# dm wrapper options END

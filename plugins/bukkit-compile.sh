@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+shopt -s extglob checkhash globstar
 
 # try to import the current configuration
 if test ! -d .dm ; then
@@ -118,7 +119,7 @@ function parse_upstreams() {
                 exit 1
             elif test ! -z ${!upstream[$i]} ; then # the upstream exists
                 echo -en "[${_bc_y}Building upstream project ${upstream[$i]}...${_bc_nc}]"
-                ${!upstream[$i]}/compile.sh -po ${incdir}/${upstream[$i]} 2>&1 1>./upstream_log.txt
+                ${!upstream[$i]}/compile.sh -po ${incdir}/${upstream[$i]}.jar 2>&1 1>./upstream_log.txt
                 upstream_status=$?
                 if ((${upstream_status} != 0)) ; then
                     echo -e "           [ ${_bc_r} FAILED {${upstream_status}}. $_bc_nc} ]"
@@ -148,7 +149,7 @@ fi
 
 echo -en "${_bc_y}[${name}(${version}-${hashtag})] building.]${_bc_nc}"
 
-javac -Xlint:depreciated -Xstdout compile_log.txt -sourcepath src/ -g -cp ${javac_includes} ${javac_src}
+javac -Xlint:depreciated -Xstdout compile_log.txt -sourcepath src/ -g -cp ${javac_includes} "${javac_src}"
 
 errors=`cat "./compile_log.txt" | tail -n 1`
 errors_t=`echo ${errors} | tr -d "[[:space:]]"`
