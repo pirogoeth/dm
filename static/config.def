@@ -6,6 +6,7 @@ declare -a upstream
 name=""
 basedir=""
 incdir="${basedir}/inc" # you shouldn't need to change this
+jvmv="6" # default uses JDK 6, you may not need to change this. check your config/global for details
 javac_includes=""
 javac_src=""
 

@@ -4,9 +4,17 @@
 export dmcore=`which dm`
 dmcore=${dmcore%/*}
 
+source ${dmcore}/config/global
+
 # colours
 _bold='\033[1;37m'
 _none='\033[0m'
+
+if test "${rtfm}" == "NO" ; then
+    echo -e "Please modify your ${_bold}${dmcore}/config/global${_none}"
+    echo -e "Make sure you ${_bold}READ${_none}."
+    exit
+fi
 
 if test ! -d ${HOME}/.dm ; then
     mkdir ${HOME}/.dm

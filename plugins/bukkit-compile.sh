@@ -33,7 +33,7 @@ _WD=`pwd`
 cd ${basedir}
 
 version=`cat src/plugin.yml | grep "version" | awk '{print $2}'`
-hashtag=`git log -n 1 | grep commit | awk '{ print $2 }' | cut -b 1-7`
+hashtag=`git log -n 1 | grep -m1 commit | awk '{ print $2 }' | cut -b 1-7`
 resource="${name},${basedir}"
 compiler_resources=${HOME}/.dm/resources
 
@@ -55,7 +55,7 @@ else
   echo "${resource};" >> ${compiler_resources}
 fi
 
-while getopts "vhpr:o:VH?" flag
+while getopts "vhpkr:o:VH67?" flag
     do
         case $flag in
             V) echo -e "${_bc_y}Building for ${name}, version ${version}."
@@ -76,8 +76,17 @@ while getopts "vhpr:o:VH?" flag
             p) echo -e "${_bc_y}Writing git committag to plugin.yml."
                export pct="YES"
             ;;
+            k) echo -e "${_bc_y}Keeping logfiles."
+               export keeplogs="YES"
+            ;;
             r) echo -e "${_bc_r}Remote transfer enabled!"
                export remote=${OPTARG}
+            ;;
+            6) echo -e "${_bc_y}Forcing build with JDK 6."
+               export jvmv="6"
+            ;;
+            7) echo -e "${_bc_y}Forcing build with JDK 7."
+               export jvmv="7"
             ;;
             \?) echo "Usage: `basename $0` [-HVhv?] [-o outfile]"
                exit
@@ -88,6 +97,8 @@ while getopts "vhpr:o:VH?" flag
     done
 
 function parse_upstreams() {
+    local workdir
+
     function getKey() {
         echo ${1//','/ } | awk '{print $1};'
     }
@@ -118,8 +129,9 @@ function parse_upstreams() {
                 echo "${_bc_r}[FATAL! Upstream project ${upstream[$i]} can not be found! Aborting!]${_bc_nc}"
                 exit 1
             elif test ! -z ${!upstream[$i]} ; then # the upstream exists
-                echo -en "[${_bc_y}Building upstream project ${upstream[$i]}...${_bc_nc}]"
-                ${!upstream[$i]}/compile.sh -po ${incdir}/${upstream[$i]}.jar 2>&1 1>./upstream_log.txt
+                echo -e "[${_bc_y}Building upstream project ${upstream[$i]}...${_bc_nc}]"
+                workdir=${PWD}
+                cd ${!upstream[${i}]} && dm bukkit -po ${incdir}/${upstream[$i]}.jar
                 upstream_status=$?
                 if ((${upstream_status} != 0)) ; then
                     echo -e "           [ ${_bc_r} FAILED {${upstream_status}}. $_bc_nc} ]"
@@ -132,15 +144,23 @@ function parse_upstreams() {
                 fi
             fi
         done
+
+    # back to working directory!
+    cd ${basedir}
 }
 
 function cleanup() {
-    rm -f ./{archive,compile,scp,upstream}_log.txt
-    echo -e "${_bc_y}Cleaned up logfiles!${_bc_nc}"
-    cd ${_WD}
+    if [ "${keeplogs}" != "YES" ] ; then
+        rm -f ./{archive,compile,scp,upstream}_log.txt
+        echo -e "${_bc_y}Cleaned up logfiles!${_bc_nc}"
+        cd ${_WD}
+    fi
 }
 
 trap cleanup EXIT
+
+# FIRST FIRST, clean up all .class files in the source directory
+rm -f `find ${javac_src} -name *.class`
 
 # first, build any upstreams.
 if ((${#upstream[@]} > 0)) ; then # we have upstreams to parse and build
@@ -149,13 +169,17 @@ fi
 
 echo -en "${_bc_y}[${name}(${version}-${hashtag})] building.]${_bc_nc}"
 
-javac -Xlint:depreciated -Xstdout compile_log.txt -sourcepath src/ -g -cp ${javac_includes} "${javac_src}"
+if test "${jvmv}" == "6" || test "${java7_disable}" == "YES" ; then
+    ${java6_path} -Xstdout compile_log.txt -sourcepath src/ -g -cp ${javac_includes} ${javac_src}
+elif test "${jvmv}" == "7" && test "${java7_disable}" == "NO" ; then
+    ${java7_path} -Xstdout compile_log.txt -sourcepath src/ -g -cp ${javac_includes} ${javac_src}
+fi
 
 errors=`cat "./compile_log.txt" | tail -n 1`
 errors_t=`echo ${errors} | tr -d "[[:space:]]"`
 end=`tail -n -1 ./compile_log.txt | cut -b 1-5`
 
-if ! [ "${end}" == "Note:" ] || (test -z "${errors}" && ! test -z "${errors_t}") ; then
+if (test "${end}" != "Note:" && test "${end}" != "") || (test ! -z "${errors}" && test ! -z "${errors_t}") ; then
     echo -e "           [ ${_bc_r} FAIL ${_bc_nc} ]"
     echo -e "${_bc_y}$(cat compile_log.txt)"
     exit 1
