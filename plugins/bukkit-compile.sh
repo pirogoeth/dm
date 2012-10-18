@@ -12,6 +12,10 @@ elif test -d .dm && test -e .dm/config ; then
     source .dm/config
 fi
 
+if [ ! -z ${BASEDIR} ] ; then
+    basedir=${BASEDIR}
+fi
+
 # ==============================================================================================================
 # bash colour codes
 #
@@ -170,16 +174,16 @@ fi
 echo -en "${_bc_y}[${name}(${version}-${hashtag})] building.]${_bc_nc}"
 
 if test "${jvmv}" == "6" || test "${java7_disable}" == "YES" ; then
-    ${java6_path} -Xstdout compile_log.txt -sourcepath src/ -g -cp ${javac_includes} ${javac_src}
+    "${java6_path}" -Xstdout compile_log.txt -sourcepath ${srcdir} -g -cp ${javac_includes} ${javac_src}
 elif test "${jvmv}" == "7" && test "${java7_disable}" == "NO" ; then
-    ${java7_path} -Xstdout compile_log.txt -sourcepath src/ -g -cp ${javac_includes} ${javac_src}
+    "${java7_path}" -Xstdout compile_log.txt -sourcepath ${srcdir} -g -cp ${javac_includes} ${javac_src}
 fi
 
 errors=`cat "./compile_log.txt" | tail -n 1`
 errors_t=`echo ${errors} | tr -d "[[:space:]]"`
 end=`tail -n -1 ./compile_log.txt | cut -b 1-5`
 
-if (test "${end}" != "Note:" && test "${end}" != "") || (test ! -z "${errors}" && test ! -z "${errors_t}") ; then
+if (test "${end}" != "Note:" && test "${end}" != "") && (test ! -z "${errors}" && test ! -z "${errors_t}") ; then
     echo -e "           [ ${_bc_r} FAIL ${_bc_nc} ]"
     echo -e "${_bc_y}$(cat compile_log.txt)"
     exit 1
@@ -205,7 +209,7 @@ if [ "${pct}" == "YES" ] ; then
     echo -n "${_pd}" >${plugin_datafile}
 fi
 
-jar cvf ${OUTFILENAME} -C src/ . 2>&1 1>archive_log.txt
+jar cvf ${OUTFILENAME} -C ${srcdir} . 2>&1 1>archive_log.txt
 
 echo -e "            [ ${_bc_g} OK ${_bc_nc} ]"
 

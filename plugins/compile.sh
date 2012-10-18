@@ -12,6 +12,10 @@ elif test -d .dm && test -e .dm/config ; then
     source .dm/config
 fi
 
+if [ ! -z ${BASEDIR} ] ; then
+    basedir=${BASEDIR}
+fi
+
 # ==============================================================================================================
 # bash colour codes
 #
