@@ -1,0 +1,11 @@
+# this is the FULL/ABSOLUTE path to your java 6 javac executable
+java6_path="/usr/local/bin/javac"
+
+# this is the FULL/ABSOLUTE path to your java 7 javac executable, if you have one
+java7_path="/usr/local/openjdk7/bin/javac"
+
+# if you don't have java 7, set this to NO. if you do have it, set to YES. if unsure, leave at NO.
+java7_disable="NO"
+
+# set this value to YES
+rtfm="NO"

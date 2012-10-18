@@ -1,5 +1,7 @@
 declare -a upstream
 
+source ${dmcore}/config/global
+
 # ==============================================================================================================
 # compiler configurable options
 
