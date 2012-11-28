@@ -3,6 +3,10 @@ shopt -s extglob checkhash globstar
 
 # try to import the current configuration
 if test ! -d .dm ; then
+    if test "`dirlocate .dm /`" != "" ; then
+        source `dirlocate .dm /`/config
+        break
+    fi
     echo "dm configuration directory does not exist, creating skeleton!"
     mkdir -p .dm/deps
     cat ${dmcore}/static/config.def >> .dm/config
@@ -38,7 +42,7 @@ cd ${basedir}
 
 hashtag=`git log -n 1 | grep -m1 commit | awk '{ print $2 }' | cut -b 1-7`
 resource="${name},${basedir}"
-compiler_resources=${HOME}/.dm/resources
+compiler_resources=${HOME}/.dm-resources/resources
 
 # context vars/statement ENDS
 #===============================================================================================================
@@ -180,6 +184,17 @@ fi
 
 if [ "${verbose}" == "YES" ] ; then
     echo -e "${_bc_y}$(cat compile_log.txt)"
+fi
+
+if [ "${testcmd}" != "" ] ; then
+    echo -en "${_bc_y}[Running tests..]${_bc_nc}"
+    eval $testcmd
+    testexit=$?
+    if [ "${testexit}" == 1 ] ; then
+        echo -e "[ ${_bc_r} FAILED ${_bc_nc} ]"
+        exit 1
+    fi
+    echo -e "[ ${_bc_g} OK ${_bc_nc} ]"
 fi
 
 echo -en "${_bc_y}[${name}(${hashtag})] packing.]${_bc_nc}"

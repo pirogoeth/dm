@@ -28,6 +28,9 @@ upstream=(  )
 depsource="http://maio.me/dm"
 # this shouldnt change.
 manifest="manifest.txt"
+# this is the command that the build system will run to perform tests. if any tests fail,
+# the build will stop before packaging
+testcmd=""
 
 # dependency configuration ENDS
 # ==============================================================================================================

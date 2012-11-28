@@ -13,7 +13,8 @@ _bold='\033[1;37m'
 _none=']033[0m'
 
 if [[ $(projectdir) == "YES" ]] ; then
-    source ${PWD}/.dm/config
+    projdir=`dirlocate .dm /`
+    source ${projdir}/config
     echo "A project named '${name}' already exists in this directory!"
     exit
 fi

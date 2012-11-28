@@ -16,13 +16,32 @@ if test "${rtfm}" == "NO" ; then
     exit
 fi
 
-if test ! -d ${HOME}/.dm ; then
-    mkdir ${HOME}/.dm
+if test ! -d ${HOME}/.dm-resources ; then
+    mkdir ${HOME}/.dm-resources
 fi
 
 command=${1}
 shift
 
+function dirlocate () {
+    fDir=$1
+    sLimit=$2
+    lDir=""
+    curdir=`pwd`
+    while [[ "`pwd`" != "${sLimit}" && "`pwd`" != "/" ]] ; do
+        if test -e "${fDir}" ; then
+            cd ${fDir}
+            lDir=`pwd`
+            break;
+        fi
+        cd ..
+    done
+    cd ${curdir}
+    if test ! -z $lDir ; then
+        echo ${lDir}
+    fi
+}
+                                                                                            
 function dmplugindir() {
     # $1: name of the plugin (plugin names and plugin dir name
     #     is coordinated
@@ -43,6 +62,8 @@ function projectdir() {
     # tells if current dir is a project dir
     if test -d ${PWD}/.dm && test -e ${PWD}/.dm/config ; then
         echo "YES"
+    elif [[ "`dirlocate .dm /`" != "" ]] ; then
+        echo "YES"
     else
         echo "NO"
     fi
@@ -50,7 +71,8 @@ function projectdir() {
 
 function actionallowed() {
     if [[ `projectdir` == YES ]] ; then
-        source ${PWD}/.dm/config
+        projdir=`dirlocate .dm /`
+        source ${projdir}/config
         # tells if the action/command is allowed in the current project.
         for (( i=0; $i<${#dm_allowed_actions[@]}; i++ ))
             do
@@ -102,7 +124,8 @@ for hook in $(ls ${dmcore}/hooks)
     done
 
 if [[ `projectdir` == "YES" ]] ; then
-    source ${PWD}/.dm/config
+    projdir=`dirlocate .dm /`
+    source ${projdir}/config
     echo "  actions allowed on this project:"
     for (( i=0; $i<${#dm_allowed_actions[@]}; i++ ))
         do

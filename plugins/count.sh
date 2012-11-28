@@ -3,6 +3,10 @@ shopt -s extglob checkhash globstar
 
 # try to import the current configuration
 if test ! -d .dm ; then
+    if test "`dirlocate .dm /`" != "" ; then
+        source `dirlocate .dm /`/config
+        break
+    fi
     echo "dm configuration directory does not exist, creating skeleton!"
     mkdir -p .dm/deps
     cat ${dmcore}/static/config.def >> .dm/config
