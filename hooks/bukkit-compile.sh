@@ -23,5 +23,5 @@ function check() {
 function run() {
     # this shouldve been provided everything after the main args of dm have been shifted once.
     # basically, what couldve been `dm bukkit-compile -ph` will now appear as `-ph` to me :)
-    bash ${dmcore}/plugins/bukkit-compile.sh ${*}
+    bash ${dmcore}/plugins/bukkit-compile.sh ${@}
 }

@@ -89,13 +89,20 @@ function actionallowed() {
     fi
 }
 
+# make these functions usable to plugins
+export -f dirlocate dmplugindir projectdir actionallowed
+
 for hook in $(ls ${dmcore}/hooks)
     do
         source ${dmcore}/hooks/${hook}
         result=`check ${command}`
         case $result in
             YES) if [[ `actionallowed ${command}` == "YES" ]] ; then
+                     projdir=`dirlocate .dm /`
+                     curdir=`pwd`
+                     cd $projdir
                      run ${*}
+                     cd $curdir
                      exit
                  else
                      echo -e "Action ${_bold}${command}${_none} is not allowed for this project."

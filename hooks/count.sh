@@ -21,5 +21,5 @@ function check() {
 
 function run() {
     # this shouldve been provided everything after the main args of dm have been shifted once.
-    bash ${dmcore}/plugins/count.sh ${*}
+    bash ${dmcore}/plugins/count.sh ${@}
 }

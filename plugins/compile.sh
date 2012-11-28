@@ -5,13 +5,13 @@ shopt -s extglob checkhash globstar
 if test ! -d .dm ; then
     if test "`dirlocate .dm /`" != "" ; then
         source `dirlocate .dm /`/config
-        break
+    else
+        echo "dm configuration directory does not exist, creating skeleton!"
+        mkdir -p .dm/deps
+        cat ${dmcore}/static/config.def >> .dm/config
+        echo "exiting."
+        exit 1
     fi
-    echo "dm configuration directory does not exist, creating skeleton!"
-    mkdir -p .dm/deps
-    cat ${dmcore}/static/config.def >> .dm/config
-    echo "exiting."
-    exit 1
 elif test -d .dm && test -e .dm/config ; then
     source .dm/config
 fi
