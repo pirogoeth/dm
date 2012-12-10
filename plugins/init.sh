@@ -22,7 +22,11 @@ fi
 # ask for project name
 read -p "Project name? => " projname
 projname=${projname/$'\n'/}
-basedir=${PWD/$'\n'/}
+basedir=`pwd`
+basedir=${basedir/$'\n'/}
+
+# tell where the basedir is
+echo "Project '${projname}' is '${basedir}'"
 
 # create dm directories
 mkdir -p .dm/{deps,hooks,plugins}

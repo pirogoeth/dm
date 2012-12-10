@@ -41,6 +41,13 @@ function dirlocate () {
         echo ${lDir}
     fi
 }
+
+function resolvedir() {
+    resolve=$1
+    pushd ${resolve} >/dev/null
+    echo ${PWD}
+    popd >/dev/null
+}
                                                                                             
 function dmplugindir() {
     # $1: name of the plugin (plugin names and plugin dir name
@@ -100,7 +107,7 @@ for hook in $(ls ${dmcore}/hooks)
             YES) if [[ `actionallowed ${command}` == "YES" ]] ; then
                      projdir=`dirlocate .dm /`
                      curdir=`pwd`
-                     cd $projdir
+                     if ! test -z ${projdir} ; then cd $projdir; fi
                      run ${*}
                      cd $curdir
                      exit
