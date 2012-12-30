@@ -38,6 +38,7 @@ _bc_nc='\033[0m'
 # context variables and statement
 
 _WD=`pwd`
+_EXITCODE=0
 cd ${basedir}
 
 hashtag=`git log -n 1 | grep -m1 commit | awk '{ print $2 }' | cut -b 1-7`
@@ -50,6 +51,15 @@ compiler_resources=${HOME}/.dm-resources/resources
 function pass() {
     echo "" >/dev/null
 } # pythonic function.
+
+function exit() {
+    if test -z $1 ; then
+        _EXITCODE=0
+    else
+        _EXITCODE=$1
+    fi
+    builtin exit ${_EXITCODE}
+}
 
 # make sure this possible {up,down}stream is listed in compiler resources
 if test ! -e ${compiler_resources} ; then
@@ -150,6 +160,7 @@ function cleanup() {
     rm -f ./{archive,compile,scp,upstream}_log.txt
     echo -e "${_bc_y}Cleaned up logfiles!${_bc_nc}"
     cd ${_WD}
+    builtin exit ${_EXITCODE}
 }
 
 trap cleanup EXIT
