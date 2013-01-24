@@ -72,7 +72,7 @@ else
   echo "${resource};" >> ${compiler_resources}
 fi
 
-while getopts "vhr:o:m:H67?" flag
+while getopts "vhr:o:m:H67kC?" flag
     do
         case $flag in
             H) echo -e "${_bc_y}${name} committag ${hashtag}"
@@ -97,6 +97,12 @@ while getopts "vhr:o:m:H67?" flag
             ;;
             7) echo -e "${_bc_y}Forcing build with JDK 7."
                export jvmv="7"
+            ;;
+            k) echo -e "${_bc_y}Keeping logfiles."
+               export keeplogs="YES"
+            ;;
+            C) echo -e "${_bc_y}Cleaning .class files."
+               export clean="YES"
             ;;
             \?) echo "Usage: `basename $0` [-HVhv?] [-o outfile]"
                exit
@@ -154,19 +160,35 @@ function parse_upstreams() {
                 fi
             fi
         done
+
+    # back to working directory!
+    cd ${basedir}
 }
 
 function cleanup() {
-    rm -f ./{archive,compile,scp,upstream}_log.txt
-    echo -e "${_bc_y}Cleaned up logfiles!${_bc_nc}"
-    cd ${_WD}
+    if [ "${keeplogs}" != "YES" ] ; then
+        rm -f ./{archive,compile,scp,upstream}_log.txt
+        echo -e "${_bc_y}Cleaned up logfiles!${_bc_nc}"
+        cd ${_WD}
+    fi
+    if [ "${clean}" == "YES" ] ; then
+        if [ ! -z "${targetdir}" ] ; then
+            cd ${targetdir}
+        else
+            cd ${basedir}
+        fi
+        if [ "${verbose}" == "YES" ] ; then
+            rm -v `find . | grep ".class"`
+        else
+            rm `find . | grep ".class"`
+        fi
+        echo -e "${_bc_r}Cleaned up compiled classes!${_bc_nc}"
+        cd ${_WD}
+    fi
     builtin exit ${_EXITCODE}
 }
 
 trap cleanup EXIT
-
-# FIRST FIRST, clean up all .class files in the source directory
-rm -f `find ${javac_src} -name *.class`
 
 # first, build any upstreams.
 if ((${#upstream[@]} > 0)) ; then # we have upstreams to parse and build
@@ -176,16 +198,24 @@ fi
 echo -en "${_bc_y}[${name}(${hashtag})] building.]${_bc_nc}"
 
 if test "${jvmv}" == "6" || test "${java7_disable}" == "YES" ; then
-    ${java6_path} -Xstdout compile_log.txt -sourcepath src/ -g -cp ${javac_includes} ${javac_src}
+    if [ ! -z "${targetdir}" ] ; then
+        ${java6_path} -Xstdout compile_log.txt -sourcepath src/ -d ${targetdir} -g -cp ${javac_includes} ${javac_src}
+    else
+        ${java6_path} -Xstdout compile_log.txt -sourcepath src/ -g -cp ${javac_includes} ${javac_src}
+    fi
 elif test "${jvmv}" == "7" && test "${java7_disable}" == "NO" ; then
-    ${java7_path} -Xstdout compile_log.txt -sourcepath src/ -g -cp ${javac_includes} ${javac_src}
+    if [ ! -z "${targetdir}" ] ; then
+        ${java7_path} -Xstdout compile_log.txt -sourcepath src/ -d ${targetdir} -g -cp ${javac_includes} ${javac_src}
+    else
+        ${java7_path} -Xstdout compile_log.txt -sourcepath src/ -g -cp ${javac_includes} ${javac_src}
+    fi
 fi
 
 errors=`cat "./compile_log.txt" | tail -n 1`
 errors_t=`echo ${errors} | tr -d "[[:space:]]"`
 end=`tail -n -1 ./compile_log.txt | cut -b 1-5`
 
-if (test "${end}" != "Note:" && test "${end}" != "") || (test ! -z "${errors}" && test ! -z "${errors_t}") ; then
+if (test "${end}" != "Note:" && test "${end}" != "") && (test ! -z "${errors}" && test ! -z "${errors_t}") ; then
     echo -e "           [ ${_bc_r} FAIL ${_bc_nc} ]"
     echo -e "${_bc_y}$(cat compile_log.txt)"
     exit 1
@@ -198,7 +228,7 @@ if [ "${verbose}" == "YES" ] ; then
 fi
 
 if [ "${testcmd}" != "" ] ; then
-    echo -en "${_bc_y}[Running tests..]${_bc_nc}"
+    echo -e "${_bc_y}[Running tests..]${_bc_nc}"
     eval $testcmd
     testexit=$?
     if [ "${testexit}" == 1 ] ; then
@@ -216,7 +246,11 @@ else
     OUTFILENAME="${name}.jar"
 fi
 
-jar cvf ${OUTFILENAME} ${mcattr} -C src/ . 2>&1 1>archive_log.txt
+jar cvf ${OUTFILENAME} ${mcattr} -C ${srcdir} . 2>&1 1>archive_log.txt
+
+if [ ! -z "${resdir}" ] ; then
+    jar uvf ${OUTFILENAME} -C ${resdir} . 2>&1 1>>archive_log.txt
+fi
 
 echo -e "            [ ${_bc_g} OK ${_bc_nc} ]"
 
@@ -236,8 +270,8 @@ if [ ! -z $remote ] ; then
     fi
 elif [ ! -z $outdir ] ; then
     mv ${OUTFILENAME} ${outdir}
-elif [ `pwd` != ${_WD} ] && [ -z $outdir ] ; then
-    mv ${OUTFILENAME} ${_WD}
+elif [ -z $outdir ] ; then
+    mv ${OUTFILENAME} ${basedir}
 fi
 
 echo -e "${_bc_g}Successfully built ${name} ${hashtag}!${_bc_nc}"

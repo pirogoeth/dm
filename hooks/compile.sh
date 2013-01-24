@@ -23,5 +23,13 @@ function check() {
 function run() {
     # this shouldve been provided everything after the main args of dm have been shifted once.
     # basically, what couldve been `dm compile -ph` will now appear as `-ph` to me :)
-    bash ${dmcore}/plugins/compile.sh ${@}
+    if [ "${DM_DEBUG}" == "YES" ] ; then
+        export plopts="-x"
+    fi
+
+    if [ "${DM_PROFILING}" == "YES" ] ; then
+        time bash ${plopts} ${dmcore}/plugins/compile.sh ${@}
+    else
+        bash ${plopts} ${dmcore}/plugins/compile.sh ${@}
+    fi
 }

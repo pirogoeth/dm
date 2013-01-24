@@ -21,5 +21,13 @@ function check() {
 
 function run() {
     # this shouldve been provided everything after the main args of dm have been shifted once.
-    bash ${dmcore}/plugins/count.sh ${@}
+    if [ "${DM_DEBUG}" == "YES" ] ; then
+        export plopts="-x"
+    fi
+
+    if [ "${DM_PROFILING}" == "YES" ] ; then
+        time bash ${plopts} ${dmcore}/plugins/count.sh ${@}
+    else
+        bash ${plopts} ${dmcore}/plugins/count.sh ${@}
+    fi
 }

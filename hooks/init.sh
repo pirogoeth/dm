@@ -26,5 +26,13 @@ function check() {
 
 function run() {
     # run the plugin, like a bau5
-    bash ${dmcore}/plugins/init.sh ${@}
+    if [ "${DM_DEBUG}" == "YES" ] ; then
+        export plopts="-x"
+    fi
+
+    if [ "${DM_PROFILING}" == "YES" ] ; then
+        time bash ${plopts} ${dmcore}/plugins/init.sh ${@}
+    else
+        bash ${plopts} ${dmcore}/plugins/init.sh ${@}
+    fi
 }

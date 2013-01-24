@@ -73,7 +73,7 @@ else
   echo "${resource};" >> ${compiler_resources}
 fi
 
-while getopts "vhpkr:o:VH67?" flag
+while getopts "vhpkr:o:VH67?C" flag
     do
         case $flag in
             V) echo -e "${_bc_y}Building for ${name}, version ${version}."
@@ -105,6 +105,9 @@ while getopts "vhpkr:o:VH67?" flag
             ;;
             7) echo -e "${_bc_y}Forcing build with JDK 7."
                export jvmv="7"
+            ;;
+            C) echo -e "${_bc_y}Cleaning up .class files."
+               export clean="YES"
             ;;
             \?) echo "Usage: `basename $0` [-HVhv?] [-o outfile]"
                exit
@@ -173,13 +176,24 @@ function cleanup() {
         echo -e "${_bc_y}Cleaned up logfiles!${_bc_nc}"
         cd ${_WD}
     fi
+    if [ "${clean}" == "YES" ] ; then
+        if [ ! -z "${targetdir}" ] ; then
+            cd ${targetdir}
+        else
+            cd ${basedir}
+        fi
+        if [ "${verbose}" == "YES" ] ; then
+            rm -v `find . | grep ".class"`
+        else
+            rm `find . | grep ".class"`
+        fi
+        echo -e "${_bc_r}Cleaned up compiled classes!${_bc_nc}"
+        cd ${_WD}
+    fi
     builtin exit ${_EXITCODE}
 }
 
 trap cleanup EXIT
-
-# FIRST FIRST, clean up all .class files in the source directory
-rm -f `find ${javac_src} -name *.class`
 
 # first, build any upstreams.
 if ((${#upstream[@]} > 0)) ; then # we have upstreams to parse and build
@@ -189,9 +203,17 @@ fi
 echo -en "${_bc_y}[${name}(${version}-${hashtag})] building.]${_bc_nc}"
 
 if test "${jvmv}" == "6" || test "${java7_disable}" == "YES" ; then
-    "${java6_path}" -Xstdout compile_log.txt -sourcepath ${srcdir} -g -cp ${javac_includes} ${javac_src}
+    if [ ! -z "${targetdir}" ] ; then
+        "${java6_path}" -Xstdout compile_log.txt -sourcepath ${srcdir} -d ${targetdir} -g -cp ${javac_includes} ${javac_src}
+    else
+        "${java6_path}" -Xstdout compile_log.txt -sourcepath ${srcdir} -g -cp ${javac_includes} ${javac_src}
+    fi
 elif test "${jvmv}" == "7" && test "${java7_disable}" == "NO" ; then
-    "${java7_path}" -Xstdout compile_log.txt -sourcepath ${srcdir} -g -cp ${javac_includes} ${javac_src}
+    if [ ! -z "${targetdir}" ] ; then
+        "${java7_path}" -Xstdout compile_log.txt -sourcepath ${srcdir} -d ${targetdir} -g -cp ${javac_includes} ${javac_src}
+    else
+        "${java7_path}" -Xstdout compile_log.txt -sourcepath ${srcdir} -g -cp ${javac_includes} ${javac_src}
+    fi
 fi
 
 errors=`cat "./compile_log.txt" | tail -n 1`
@@ -211,10 +233,10 @@ if [ "${verbose}" == "YES" ] ; then
 fi
 
 if [ "${testcmd}" != "" ] ; then
-    echo -en "${_bc_y}[Running tests..]${_bc_nc}"
+    echo -e "${_bc_y}[Running tests..]${_bc_nc}"
     eval $testcmd
     testexit=$?
-    if [ "${testexit}" == 1 ] ; then
+    if [ ${testexit} == 1 ] ; then
         echo -e "[ ${_bc_r} FAILED ${_bc_nc} ]"
         exit 1
     fi
@@ -235,7 +257,11 @@ if [ "${pct}" == "YES" ] ; then
     echo -n "${_pd}" >${plugin_datafile}
 fi
 
-jar cvf ${OUTFILENAME} -C ${srcdir} . 2>&1 1>archive_log.txt
+jar cvf ${OUTFILENAME} ${pkgattr} -C ${srcdir} . 2>&1 1>archive_log.txt
+
+if [ ! -z "${resdir}" ] ; then
+    jar uvf ${OUTFILENAME} -C ${resdir} . 2>&1 1>>archive_log.txt
+fi
 
 echo -e "            [ ${_bc_g} OK ${_bc_nc} ]"
 
@@ -259,8 +285,8 @@ if [ ! -z $remote ] ; then
     fi
 elif [ ! -z $outdir ] ; then
     mv ${OUTFILENAME} ${outdir}
-elif [ `pwd` != ${_WD} ] && [ -z $outdir ] ; then
-    mv ${OUTFILENAME} ${_WD}
+elif [ -z $outdir ] ; then
+    mv ${OUTFILENAME} ${basedir}
 fi
 
 echo -e "${_bc_g}Successfully built ${name} ${version}-${hashtag}!${_bc_nc}"
