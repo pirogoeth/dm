@@ -11,7 +11,6 @@ srcdir="${basedir}/src" # you shouldn't need to change this. -- directory to bui
 incdir="${basedir}/inc" # you shouldn't need to change this. -- directory of all includes
 targetdir="${basedir}/target" # shouldn't need to change this. -- directory to output built class structure to
 resdir="${basedir}/resources" # shouldn't need to change this -- directory of resources to compile in.
-pkgattr="" # extra params to pass along to 'jar' during archiving.
 jvmv="6" # default uses JDK 6, you may not need to change this. check your config/global for details
 javac_includes=""
 javac_src=""
