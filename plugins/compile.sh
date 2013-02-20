@@ -52,15 +52,6 @@ function pass() {
     echo "" >/dev/null
 } # pythonic function.
 
-function exit() {
-    if test -z $1 ; then
-        _EXITCODE=0
-    else
-        _EXITCODE=$1
-    fi
-    builtin exit ${_EXITCODE}
-}
-
 # make sure this possible {up,down}stream is listed in compiler resources
 if test ! -e ${compiler_resources} ; then
   touch ${compiler_resources}
@@ -72,7 +63,7 @@ else
   echo "${resource};" >> ${compiler_resources}
 fi
 
-while getopts "vhr:o:m:H67kC?" flag
+while getopts "vhtr:o:m:H67kC?" flag
     do
         case $flag in
             H) echo -e "${_bc_y}${name} committag ${hashtag}"
@@ -91,6 +82,9 @@ while getopts "vhr:o:m:H67kC?" flag
                export remote=${OPTARG}
             ;;
             m) export mcattr="-m ${OPTARG}"
+            ;;
+            t) echo -e "${_bc_y}Writing commit tag to hash file."
+               export wtag="YES"
             ;;
             6) echo -e "${_bc_y}Forcing build with JDK 6."
                export jvmv="6"
@@ -165,6 +159,15 @@ function parse_upstreams() {
     cd ${basedir}
 }
 
+function exit() {
+    if test -z $1 ; then
+        _EXITCODE=0
+    else
+        _EXITCODE=$1
+    fi
+    builtin exit ${_EXITCODE}
+}
+
 function cleanup() {
     if [ "${keeplogs}" != "YES" ] ; then
         rm -f ./{archive,compile,scp,upstream}_log.txt
@@ -185,7 +188,6 @@ function cleanup() {
         echo -e "${_bc_r}Cleaned up compiled classes!${_bc_nc}"
         cd ${_WD}
     fi
-    builtin exit ${_EXITCODE}
 }
 
 trap cleanup EXIT
@@ -236,6 +238,10 @@ if [ "${testcmd}" != "" ] ; then
         exit 1
     fi
     echo -e "[ ${_bc_g} OK ${_bc_nc} ]"
+fi
+
+if [ "${wtag}" == "YES" ] ; then
+    echo -n "${hashtag}" > ${hashtag_file}
 fi
 
 echo -en "${_bc_y}[${name}(${hashtag})] packing.]${_bc_nc}"

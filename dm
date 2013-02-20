@@ -109,8 +109,9 @@ for hook in $(ls ${dmcore}/hooks)
                      curdir=`pwd`
                      if ! test -z ${projdir} ; then cd $projdir; fi
                      run ${*}
+                     _EXITCODE=$?
                      cd $curdir
-                     exit
+                     exit $_EXITCODE
                  else
                      echo -e "Action ${_bold}${command}${_none} is not allowed for this project."
                      exit

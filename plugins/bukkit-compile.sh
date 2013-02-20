@@ -53,15 +53,6 @@ function pass() {
     echo "" >/dev/null
 } # pythonic function.
 
-function exit() {
-    if test -z $1 ; then
-        _EXITCODE=0
-    else
-        _EXITCODE=$1
-    fi
-    builtin exit ${_EXITCODE}
-}
-
 # make sure this possible {up,down}stream is listed in compiler resources
 if test ! -e ${compiler_resources} ; then
   touch ${compiler_resources}
@@ -73,7 +64,7 @@ else
   echo "${resource};" >> ${compiler_resources}
 fi
 
-while getopts "vhpkr:o:VH67?C" flag
+while getopts "vhtkr:o:VH67?C" flag
     do
         case $flag in
             V) echo -e "${_bc_y}Building for ${name}, version ${version}."
@@ -91,8 +82,8 @@ while getopts "vhpkr:o:VH67?C" flag
             o) echo -e "${_bc_y}Output is now: ${OPTARG}"
                export outdir=${OPTARG}
             ;;
-            p) echo -e "${_bc_y}Writing git committag to plugin.yml."
-               export pct="YES"
+            t) echo -e "${_bc_y}Writing git committag to hashfile."
+               export wtag="YES"
             ;;
             k) echo -e "${_bc_y}Keeping logfiles."
                export keeplogs="YES"
@@ -147,7 +138,7 @@ function parse_upstreams() {
     for (( i=0; $i<${#upstream[$i]}; i++ ))
         do
             if test -z ${!upstream[$i]} ; then # the upstream doesnt exist
-                echo "${_bc_r}[FATAL! Upstream project ${upstream[$i]} can not be found! Aborting!]${_bc_nc}"
+                echo "${_bc_r}[FATAL! Upstream project ${upstream[$i]} can not be found! exiting!]${_bc_nc}"
                 exit 1
             elif test ! -z ${!upstream[$i]} ; then # the upstream exists
                 echo -e "[${_bc_y}Building upstream project ${upstream[$i]}...${_bc_nc}]"
@@ -170,6 +161,15 @@ function parse_upstreams() {
     cd ${basedir}
 }
 
+function exit() {
+    if test -z $1 ; then
+        _EXITCODE=0
+    else
+        _EXITCODE=$1
+    fi
+    builtin exit $_EXITCODE
+}
+
 function cleanup() {
     if [ "${keeplogs}" != "YES" ] ; then
         rm -f ./{archive,compile,scp,upstream}_log.txt
@@ -190,7 +190,6 @@ function cleanup() {
         echo -e "${_bc_r}Cleaned up compiled classes!${_bc_nc}"
         cd ${_WD}
     fi
-    builtin exit ${_EXITCODE}
 }
 
 trap cleanup EXIT
@@ -251,10 +250,8 @@ else
     OUTFILENAME="${name}-${version}.jar"
 fi
 
-if [ "${pct}" == "YES" ] ; then
-    pd=`cat ${plugin_datafile}`
-    _pd=`echo -en "${pd}"; echo -en "\nhashtag: ${hashtag}"`
-    echo -n "${_pd}" >${plugin_datafile}
+if [ "${wtag}" == "YES" ] ; then
+    echo -n "${hashtag}" >${hashtag_file}
 fi
 
 jar cvf ${OUTFILENAME} ${pkgattr} -C ${srcdir} . 2>&1 1>archive_log.txt
@@ -264,10 +261,6 @@ if [ ! -z "${resdir}" ] ; then
 fi
 
 echo -e "            [ ${_bc_g} OK ${_bc_nc} ]"
-
-if [ "${pct}" == "YES" ] ; then
-    echo -n "${pd}" >${plugin_datafile}
-fi
 
 if [ "${verbose}" == "YES" ] ; then
     echo "$(cat archive_log.txt)"
