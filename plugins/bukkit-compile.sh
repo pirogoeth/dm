@@ -235,7 +235,7 @@ if [ "${testcmd}" != "" ] ; then
     echo -e "${_bc_y}[Running tests..]${_bc_nc}"
     eval $testcmd
     testexit=$?
-    if [ ${testexit} == 1 ] ; then
+    if [ ${testexit} != 1 ] ; then
         echo -e "[ ${_bc_r} FAILED ${_bc_nc} ]"
         exit 1
     fi
