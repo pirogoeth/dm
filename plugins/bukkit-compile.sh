@@ -64,7 +64,7 @@ else
   echo "${resource};" >> ${compiler_resources}
 fi
 
-while getopts "vhtkr:o:VH67?C" flag
+while getopts "vhtkr:o:VHT67?C" flag
     do
         case $flag in
             V) echo -e "${_bc_y}Building for ${name}, version ${version}."
@@ -72,6 +72,9 @@ while getopts "vhtkr:o:VH67?C" flag
             ;;
             H) echo -e "${_bc_y}${name} committag ${hashtag}"
                exit 1
+            ;;
+            T) echo -e "${_bc_r}Skipping tests..."
+               export skiptest="YES"
             ;;
             h) echo -e "${_bc_y}Adding git committag to archive name."
                export tagname="YES"
@@ -100,7 +103,7 @@ while getopts "vhtkr:o:VH67?C" flag
             C) echo -e "${_bc_y}Cleaning up .class files."
                export clean="YES"
             ;;
-            \?) echo "Usage: `basename $0` [-HVhv?] [-o outfile]"
+            \?) echo "Usage: `basename $0` [-HVhvtk67C?] [-o outfile] [-r remote]"
                exit
             ;;
             *) exit
@@ -231,17 +234,6 @@ if [ "${verbose}" == "YES" ] ; then
     echo -e "${_bc_y}$(cat compile_log.txt)"
 fi
 
-if [ "${testcmd}" != "" ] ; then
-    echo -e "${_bc_y}[Running tests..]${_bc_nc}"
-    eval $testcmd
-    testexit=$?
-    if [ ${testexit} != 1 ] ; then
-        echo -e "[ ${_bc_r} FAILED ${_bc_nc} ]"
-        exit 1
-    fi
-    echo -e "[ ${_bc_g} OK ${_bc_nc} ]"
-fi
-
 echo -en "${_bc_y}[${name}(${version}-${hashtag})] packing.]${_bc_nc}"
 
 if [ "${tagname}" == "YES" ] ; then
@@ -264,6 +256,17 @@ echo -e "            [ ${_bc_g} OK ${_bc_nc} ]"
 
 if [ "${verbose}" == "YES" ] ; then
     echo "$(cat archive_log.txt)"
+fi
+
+if [ "${testcmd}" != "" && -z "${skiptest}" ] ; then
+    echo -e "${_bc_y}[Running tests..]${_bc_nc}"
+    PACKAGE=${OUTFILENAME} eval $testcmd
+    testexit=$?
+    if [ ${testexit} != 1 ] ; then
+        echo -e "[ ${_bc_r} FAILED ${_bc_nc} ]"
+        exit 1
+    fi
+    echo -e "[ ${_bc_g} OK ${_bc_nc} ]"
 fi
 
 if [ ! -z $remote ] ; then

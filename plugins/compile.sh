@@ -63,11 +63,14 @@ else
   echo "${resource};" >> ${compiler_resources}
 fi
 
-while getopts "vhtr:o:m:H67kC?" flag
+while getopts "vhtr:o:m:HT67kC?" flag
     do
         case $flag in
             H) echo -e "${_bc_y}${name} committag ${hashtag}"
                exit 1
+            ;;
+            T) echo -e "${_bc_r}Skipping tests..."
+               skiptest="YES"
             ;;
             h) echo -e "${_bc_y}Adding git committag to archive name."
                export tagname="YES"
@@ -229,17 +232,6 @@ if [ "${verbose}" == "YES" ] ; then
     echo -e "${_bc_y}$(cat compile_log.txt)"
 fi
 
-if [ "${testcmd}" != "" ] ; then
-    echo -e "${_bc_y}[Running tests..]${_bc_nc}"
-    eval $testcmd
-    testexit=$?
-    if [ "${testexit}" != 0 ] ; then
-        echo -e "[ ${_bc_r} FAILED ${_bc_nc} ]"
-        exit 1
-    fi
-    echo -e "[ ${_bc_g} OK ${_bc_nc} ]"
-fi
-
 if [ "${wtag}" == "YES" ] ; then
     echo -n "${hashtag}" > ${hashtag_file}
 fi
@@ -262,6 +254,17 @@ echo -e "            [ ${_bc_g} OK ${_bc_nc} ]"
 
 if [ "${verbose}" == "YES" ] ; then
     echo "$(cat archive_log.txt)"
+fi
+
+if [ "${testcmd}" != "" && -z "${skiptest}" ] ; then
+    echo -e "${_bc_y}[Running tests..]${_bc_nc}"
+    PACKAGE=${OUTFILENAME} eval $testcmd
+    testexit=$?
+    if [ "${testexit}" != 0 ] ; then
+        echo -e "[ ${_bc_r} FAILED ${_bc_nc} ]"
+        exit 1
+    fi
+    echo -e "[ ${_bc_g} OK ${_bc_nc} ]"
 fi
 
 if [ ! -z $remote ] ; then
