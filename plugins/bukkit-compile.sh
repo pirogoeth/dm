@@ -258,7 +258,7 @@ if [ "${verbose}" == "YES" ] ; then
     echo "$(cat archive_log.txt)"
 fi
 
-if [ "${testcmd}" != "" && -z "${skiptest}" ] ; then
+if [ "${testcmd}" != "" ] && [ -z "${skiptest}" ] ; then
     echo -e "${_bc_y}[Running tests..]${_bc_nc}"
     PACKAGE=${OUTFILENAME} eval $testcmd
     testexit=$?
