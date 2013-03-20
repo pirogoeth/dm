@@ -41,7 +41,7 @@ _WD=`pwd`
 _EXITCODE=0
 cd ${basedir}
 
-version=`cat src/plugin.yml | grep "version" | awk '{print $2}'`
+version=`cat ${plugin_file} | grep "version" | awk '{print $2}'`
 hashtag=`git log -n 1 | grep -m1 commit | awk '{ print $2 }' | cut -b 1-7`
 resource="${name},${basedir}"
 compiler_resources=${HOME}/.dm-resources/resources
@@ -103,7 +103,7 @@ while getopts "vhtkr:o:VHT67?C" flag
             C) echo -e "${_bc_y}Cleaning up .class files."
                export clean="YES"
             ;;
-            \?) echo "Usage: `basename $0` [-HVhvtk67C?] [-o outfile] [-r remote]"
+            \?) echo "Usage: `basename $0` [-HVThvtk67C?] [-o outfile] [-r remote]"
                exit
             ;;
             *) exit
